@@ -1,0 +1,78 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Stores user gamification data like streaks and experience.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "streak": { "type": "integer", "description": "Current daily completion streak." },
+        "lastActiveDate": { "type": "string", "format": "date", "description": "Last date the user completed a quest (YYYY-MM-DD)." },
+        "exp": { "type": "integer", "description": "Total experience points earned." },
+        "level": { "type": "integer", "description": "Current level based on exp." }
+      },
+      "required": ["uid", "streak", "exp", "level"]
+    },
+    "Quest": {
+      "title": "Quest Definition",
+      "description": "A task that a user can complete for points.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string", "description": "Owner of the quest (null if predefined)." },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string", "enum": ["exercise", "meditation", "reading", "custom"] },
+        "points": { "type": "integer" },
+        "isPredefined": { "type": "boolean" }
+      },
+      "required": ["title", "category", "points", "isPredefined"]
+    },
+    "UserQuest": {
+      "title": "User Quest Progress",
+      "description": "Tracks completion of a quest on a specific date.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "questId": { "type": "string" },
+        "date": { "type": "string", "format": "date", "description": "YYYY-MM-DD" },
+        "completed": { "type": "boolean" },
+        "completedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "questId", "date", "completed"]
+    },
+    "Schedule": {
+      "title": "Quest Schedule",
+      "description": "Planned quests for specific dates in the month.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "questId": { "type": "string" },
+        "date": { "type": "string", "format": "date", "description": "YYYY-MM-DD" }
+      },
+      "required": ["userId", "questId", "date"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles and gamification stats."
+    },
+    "/quests/{questId}": {
+      "schema": "Quest",
+      "description": "Global predefined quests and user-created custom quests."
+    },
+    "/userQuests/{userQuestId}": {
+      "schema": "UserQuest",
+      "description": "Daily quest completion records."
+    },
+    "/schedule/{scheduleId}": {
+      "schema": "Schedule",
+      "description": "User quest schedules."
+    }
+  }
+}

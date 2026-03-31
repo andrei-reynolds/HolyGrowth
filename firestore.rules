@@ -1,0 +1,154 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: userId (Firebase Auth UID)
+    // Fields:
+    //   - uid: string (required)
+    //   - displayName: string (optional)
+    //   - photoURL: string (optional)
+    //   - streak: int (required, min 0)
+    //   - lastActiveDate: string (optional, YYYY-MM-DD)
+    //   - exp: int (required, min 0)
+    //   - level: int (required, min 1)
+    //
+    // Collection: quests
+    // Document ID: questId
+    // Fields:
+    //   - title: string (required, 1-100 chars)
+    //   - description: string (optional, 0-500 chars)
+    //   - category: string (required, enum: exercise, meditation, reading, custom)
+    //   - points: int (required, 1-1000)
+    //   - isPredefined: bool (required)
+    //   - userId: string (optional, owner for custom quests)
+    //
+    // Collection: userQuests
+    // Document ID: userQuestId
+    // Fields:
+    //   - userId: string (required)
+    //   - questId: string (required)
+    //   - date: string (required, YYYY-MM-DD)
+    //   - completed: bool (required)
+    //   - completedAt: timestamp (optional)
+    //
+    // Collection: schedule
+    // Document ID: scheduleId
+    // Fields:
+    //   - userId: string (required)
+    //   - questId: string (required)
+    //   - date: string (required, YYYY-MM-DD)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "andrewr11231244@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidDateString(dateStr) {
+      return dateStr is string && dateStr.matches("^\\d{4}-\\d{2}-\\d{2}$");
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser(data) {
+      return hasOnlyAllowedFields(['uid', 'displayName', 'photoURL', 'streak', 'lastActiveDate', 'exp', 'level', 'role']) &&
+             data.uid is string && data.uid == request.auth.uid &&
+             (data.displayName == null || (data.displayName is string && data.displayName.size() <= 100)) &&
+             (data.photoURL == null || (data.photoURL is string && data.photoURL.size() <= 500)) &&
+             data.streak is int && data.streak >= 0 &&
+             (data.lastActiveDate == null || isValidDateString(data.lastActiveDate)) &&
+             data.exp is int && data.exp >= 0 &&
+             data.level is int && data.level >= 1;
+    }
+
+    function isValidQuest(data) {
+      return hasOnlyAllowedFields(['title', 'description', 'category', 'points', 'isPredefined', 'userId']) &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 100 &&
+             (data.description == null || (data.description is string && data.description.size() <= 500)) &&
+             data.category in ['exercise', 'meditation', 'reading', 'custom'] &&
+             data.points is int && data.points >= 1 && data.points <= 1000 &&
+             data.isPredefined is bool &&
+             (data.userId == null || (data.userId is string && data.userId == request.auth.uid));
+    }
+
+    function isValidUserQuest(data) {
+      return hasOnlyAllowedFields(['userId', 'questId', 'date', 'completed', 'completedAt']) &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.questId is string &&
+             isValidDateString(data.date) &&
+             data.completed is bool &&
+             (data.completedAt == null || data.completedAt is timestamp);
+    }
+
+    function isValidSchedule(data) {
+      return hasOnlyAllowedFields(['userId', 'questId', 'date']) &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.questId is string &&
+             isValidDateString(data.date);
+    }
+
+    // ===============================================================
+    // Collection Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == 'user';
+      allow update: if (isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == resource.data.role) || isAdmin();
+    }
+
+    match /quests/{questId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidQuest(request.resource.data) && (request.resource.data.isPredefined == false || isAdmin());
+      allow update: if (isAuthenticated() && isValidQuest(request.resource.data) && resource.data.userId == request.auth.uid) || isAdmin();
+      allow delete: if (isAuthenticated() && resource.data.userId == request.auth.uid) || isAdmin();
+    }
+
+    match /userQuests/{userQuestId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && isValidUserQuest(request.resource.data);
+      allow update: if isAuthenticated() && isValidUserQuest(request.resource.data) && resource.data.userId == request.auth.uid;
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+    match /schedule/{scheduleId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && isValidSchedule(request.resource.data);
+      allow update: if isAuthenticated() && isValidSchedule(request.resource.data) && resource.data.userId == request.auth.uid;
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+  }
+}
