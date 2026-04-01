@@ -57,7 +57,8 @@ import {
   Trees,
   Timer,
   Target,
-  GripVertical
+  GripVertical,
+  Sparkles
 } from 'lucide-react';
 import { motion, AnimatePresence, Reorder, useDragControls } from 'motion/react';
 import { db, auth } from './firebase';
@@ -263,12 +264,25 @@ const QuestCard = ({
     if (text.includes('nature') || text.includes('tree') || text.includes('garden') || text.includes('plant')) return <Trees size={20} />;
     if (text.includes('time') || text.includes('timer') || text.includes('clock') || text.includes('focus')) return <Timer size={20} />;
     if (text.includes('goal') || text.includes('target') || text.includes('aim')) return <Target size={20} />;
+    if (text.includes('bible') || text.includes('verse') || text.includes('pray') || text.includes('church') || text.includes('faith')) return <BookOpen size={20} />;
+    if (text.includes('clean') || text.includes('house') || text.includes('chore') || text.includes('tidy')) return <Sparkles size={20} />;
+    if (text.includes('money') || text.includes('save') || text.includes('budget') || text.includes('finance')) return <Target size={20} />;
+    if (text.includes('learn') || text.includes('study') || text.includes('read') || text.includes('book')) return <BookOpen size={20} />;
+    if (text.includes('meditate') || text.includes('breath') || text.includes('calm') || text.includes('mindful')) return <Brain size={20} />;
+    if (text.includes('gym') || text.includes('workout') || text.includes('exercise') || text.includes('lift')) return <Dumbbell size={20} />;
+    if (text.includes('walk') || text.includes('run') || text.includes('hike')) return <Footprints size={20} />;
+    if (text.includes('pray') || text.includes('bible') || text.includes('church')) return <Quote size={20} />;
 
     switch (quest.category) {
       case QuestCategory.EXERCISE: return <Dumbbell size={20} />;
       case QuestCategory.MEDITATION: return <Brain size={20} />;
       case QuestCategory.READING: return <BookOpen size={20} />;
-      default: return <Sword size={20} />;
+      default: {
+        // Deterministic fallback based on ID
+        const icons = [<Sword size={20} />, <Target size={20} />, <Zap size={20} />, <Sparkles size={20} />, <Trophy size={20} />];
+        const index = quest.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % icons.length;
+        return icons[index];
+      }
     }
   };
 
@@ -293,12 +307,28 @@ const QuestCard = ({
     if (text.includes('nature') || text.includes('tree') || text.includes('garden') || text.includes('plant')) return 'bg-green-100 text-green-600';
     if (text.includes('time') || text.includes('timer') || text.includes('clock') || text.includes('focus')) return 'bg-zinc-100 text-zinc-600';
     if (text.includes('goal') || text.includes('target') || text.includes('aim')) return 'bg-red-100 text-red-600';
+    if (text.includes('bible') || text.includes('verse') || text.includes('pray') || text.includes('church') || text.includes('faith')) return 'bg-yellow-100 text-yellow-600';
+    if (text.includes('clean') || text.includes('house') || text.includes('chore') || text.includes('tidy')) return 'bg-blue-100 text-blue-600';
+    if (text.includes('meditate') || text.includes('breath') || text.includes('calm') || text.includes('mindful')) return 'bg-indigo-100 text-indigo-600';
+    if (text.includes('gym') || text.includes('workout') || text.includes('exercise') || text.includes('lift')) return 'bg-red-100 text-red-600';
+    if (text.includes('pray') || text.includes('bible') || text.includes('church')) return 'bg-amber-100 text-amber-600';
 
     switch (quest.category) {
       case QuestCategory.EXERCISE: return 'bg-red-100 text-red-600';
       case QuestCategory.MEDITATION: return 'bg-blue-100 text-blue-600';
       case QuestCategory.READING: return 'bg-green-100 text-green-600';
-      default: return 'bg-purple-100 text-purple-600';
+      default: {
+        // Deterministic fallback based on ID
+        const colors = [
+          'bg-purple-100 text-purple-600',
+          'bg-indigo-100 text-indigo-600',
+          'bg-teal-100 text-teal-600',
+          'bg-orange-100 text-orange-600',
+          'bg-pink-100 text-pink-600'
+        ];
+        const index = quest.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length;
+        return colors[index];
+      }
     }
   };
 
