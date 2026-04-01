@@ -38,9 +38,28 @@ import {
   ChevronLeft, 
   ChevronRight, 
   X,
-  Quote
+  Quote,
+  Footprints,
+  Droplets,
+  Coffee,
+  Music,
+  Code,
+  Heart,
+  Utensils,
+  Zap,
+  Moon,
+  Sun,
+  Camera,
+  Brush,
+  Pen,
+  ShoppingBag,
+  Bike,
+  Trees,
+  Timer,
+  Target,
+  GripVertical
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, Reorder, useDragControls } from 'motion/react';
 import { db, auth } from './firebase';
 import { UserProfile, Quest, UserQuest, Schedule, QuestCategory, BibleQuote } from './types';
 import { PREDEFINED_QUESTS, BIBLE_QUOTES } from './constants';
@@ -214,14 +233,37 @@ const QuestCard = ({
   quest, 
   isCompleted, 
   onToggle, 
-  onDelete 
+  onDelete,
+  dragControls
 }: { 
   quest: Quest; 
   isCompleted: boolean; 
   onToggle: () => void | Promise<void>;
   onDelete?: () => void | Promise<void>;
+  dragControls: any;
 }) => {
   const getIcon = () => {
+    const text = (quest.title + ' ' + (quest.description || '')).toLowerCase();
+    
+    if (text.includes('run') || text.includes('walk') || text.includes('step') || text.includes('hike')) return <Footprints size={20} />;
+    if (text.includes('water') || text.includes('drink') || text.includes('hydrate')) return <Droplets size={20} />;
+    if (text.includes('coffee') || text.includes('tea') || text.includes('breakfast')) return <Coffee size={20} />;
+    if (text.includes('music') || text.includes('sing') || text.includes('guitar') || text.includes('piano')) return <Music size={20} />;
+    if (text.includes('code') || text.includes('program') || text.includes('dev')) return <Code size={20} />;
+    if (text.includes('heart') || text.includes('love') || text.includes('kindness') || text.includes('volunteer')) return <Heart size={20} />;
+    if (text.includes('eat') || text.includes('food') || text.includes('cook') || text.includes('meal') || text.includes('dinner') || text.includes('lunch')) return <Utensils size={20} />;
+    if (text.includes('energy') || text.includes('fast') || text.includes('quick') || text.includes('power')) return <Zap size={20} />;
+    if (text.includes('sleep') || text.includes('night') || text.includes('bed') || text.includes('dream')) return <Moon size={20} />;
+    if (text.includes('sun') || text.includes('morning') || text.includes('day') || text.includes('outside')) return <Sun size={20} />;
+    if (text.includes('photo') || text.includes('camera') || text.includes('picture')) return <Camera size={20} />;
+    if (text.includes('paint') || text.includes('art') || text.includes('draw') || text.includes('creative')) return <Brush size={20} />;
+    if (text.includes('write') || text.includes('journal') || text.includes('pen') || text.includes('blog')) return <Pen size={20} />;
+    if (text.includes('shop') || text.includes('buy') || text.includes('grocery')) return <ShoppingBag size={20} />;
+    if (text.includes('bike') || text.includes('cycle')) return <Bike size={20} />;
+    if (text.includes('nature') || text.includes('tree') || text.includes('garden') || text.includes('plant')) return <Trees size={20} />;
+    if (text.includes('time') || text.includes('timer') || text.includes('clock') || text.includes('focus')) return <Timer size={20} />;
+    if (text.includes('goal') || text.includes('target') || text.includes('aim')) return <Target size={20} />;
+
     switch (quest.category) {
       case QuestCategory.EXERCISE: return <Dumbbell size={20} />;
       case QuestCategory.MEDITATION: return <Brain size={20} />;
@@ -231,6 +273,27 @@ const QuestCard = ({
   };
 
   const getCategoryColor = () => {
+    const text = (quest.title + ' ' + (quest.description || '')).toLowerCase();
+    
+    if (text.includes('run') || text.includes('walk') || text.includes('step') || text.includes('hike')) return 'bg-orange-100 text-orange-600';
+    if (text.includes('water') || text.includes('drink') || text.includes('hydrate')) return 'bg-blue-100 text-blue-600';
+    if (text.includes('coffee') || text.includes('tea') || text.includes('breakfast')) return 'bg-amber-100 text-amber-600';
+    if (text.includes('music') || text.includes('sing') || text.includes('guitar') || text.includes('piano')) return 'bg-pink-100 text-pink-600';
+    if (text.includes('code') || text.includes('program') || text.includes('dev')) return 'bg-slate-100 text-slate-600';
+    if (text.includes('heart') || text.includes('love') || text.includes('kindness') || text.includes('volunteer')) return 'bg-rose-100 text-rose-600';
+    if (text.includes('eat') || text.includes('food') || text.includes('cook') || text.includes('meal') || text.includes('dinner') || text.includes('lunch')) return 'bg-orange-100 text-orange-600';
+    if (text.includes('energy') || text.includes('fast') || text.includes('quick') || text.includes('power')) return 'bg-yellow-100 text-yellow-600';
+    if (text.includes('sleep') || text.includes('night') || text.includes('bed') || text.includes('dream')) return 'bg-indigo-100 text-indigo-600';
+    if (text.includes('sun') || text.includes('morning') || text.includes('day') || text.includes('outside')) return 'bg-sky-100 text-sky-600';
+    if (text.includes('photo') || text.includes('camera') || text.includes('picture')) return 'bg-cyan-100 text-cyan-600';
+    if (text.includes('paint') || text.includes('art') || text.includes('draw') || text.includes('creative')) return 'bg-violet-100 text-violet-600';
+    if (text.includes('write') || text.includes('journal') || text.includes('pen') || text.includes('blog')) return 'bg-emerald-100 text-emerald-600';
+    if (text.includes('shop') || text.includes('buy') || text.includes('grocery')) return 'bg-fuchsia-100 text-fuchsia-600';
+    if (text.includes('bike') || text.includes('cycle')) return 'bg-lime-100 text-lime-600';
+    if (text.includes('nature') || text.includes('tree') || text.includes('garden') || text.includes('plant')) return 'bg-green-100 text-green-600';
+    if (text.includes('time') || text.includes('timer') || text.includes('clock') || text.includes('focus')) return 'bg-zinc-100 text-zinc-600';
+    if (text.includes('goal') || text.includes('target') || text.includes('aim')) return 'bg-red-100 text-red-600';
+
     switch (quest.category) {
       case QuestCategory.EXERCISE: return 'bg-red-100 text-red-600';
       case QuestCategory.MEDITATION: return 'bg-blue-100 text-blue-600';
@@ -240,12 +303,18 @@ const QuestCard = ({
   };
 
   return (
-    <motion.div 
-      layout
-      className={`group relative flex items-center gap-4 rounded-2xl border p-4 transition-all ${
+    <div 
+      className={`group relative flex items-center gap-3 rounded-2xl border p-4 transition-all ${
         isCompleted ? 'border-gray-100 bg-gray-50 opacity-60' : 'border-gray-200 bg-white shadow-sm hover:border-orange-200 hover:shadow-md'
       }`}
     >
+      <div 
+        onPointerDown={(e) => dragControls.start(e)}
+        className="cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-400 p-1"
+      >
+        <GripVertical size={20} />
+      </div>
+
       <button 
         onClick={onToggle}
         className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl transition-all ${
@@ -278,7 +347,29 @@ const QuestCard = ({
           </button>
         )}
       </div>
-    </motion.div>
+    </div>
+  );
+};
+
+const ReorderableQuest = ({ quest, userQuests, toggleQuest, deleteQuest }: any) => {
+  const dragControls = useDragControls();
+  return (
+    <Reorder.Item 
+      value={quest} 
+      dragControls={dragControls} 
+      dragListener={false}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+    >
+      <QuestCard 
+        quest={quest}
+        isCompleted={userQuests.some((uq: any) => uq.questId === quest.id)}
+        onToggle={() => toggleQuest(quest)}
+        onDelete={() => deleteQuest(quest.id)}
+        dragControls={dragControls}
+      />
+    </Reorder.Item>
   );
 };
 
@@ -293,6 +384,7 @@ function App() {
   const [showCalendar, setShowCalendar] = useState(false);
   const [completedQuote, setCompletedQuote] = useState<BibleQuote | null>(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [localQuests, setLocalQuests] = useState<Quest[]>([]);
 
   // --- Auth ---
   useEffect(() => {
@@ -335,13 +427,20 @@ function App() {
           lastActiveDate: null,
           exp: 0,
           level: 1,
-          role: 'user'
+          role: 'user',
+          displayOrder: PREDEFINED_QUESTS.map(q => q.id)
         };
         await setDoc(userRef, newProfile).catch(e => handleFirestoreError(e, OperationType.WRITE, `users/${u.uid}`));
         setProfile(newProfile);
       } else {
         const data = snap.data() as UserProfile;
         let updatedProfile = { ...data };
+        
+        if (!data.displayOrder) {
+          updatedProfile.displayOrder = PREDEFINED_QUESTS.map(q => q.id);
+          await updateDoc(userRef, { displayOrder: updatedProfile.displayOrder })
+            .catch(e => handleFirestoreError(e, OperationType.UPDATE, `users/${u.uid}`));
+        }
         
         // Streak Reset Logic
         if (data.lastActiveDate) {
@@ -382,10 +481,17 @@ function App() {
       setSchedule(snap.docs.map(d => ({ id: d.id, ...d.data() } as Schedule)));
     });
 
+    const unsubProfile = onSnapshot(doc(db, 'users', user.uid), (snap) => {
+      if (snap.exists()) {
+        setProfile(snap.data() as UserProfile);
+      }
+    });
+
     return () => {
       unsubQuests();
       unsubUserQuests();
       unsubSchedule();
+      unsubProfile();
     };
   }, [user, selectedDate]);
 
@@ -451,13 +557,20 @@ function App() {
     const category = formData.get('category') as QuestCategory;
 
     try {
-      await addDoc(collection(db, 'quests'), {
+      const docRef = await addDoc(collection(db, 'quests'), {
         userId: user.uid,
         title,
         points,
         category,
         isPredefined: false
       }).catch(e => handleFirestoreError(e, OperationType.CREATE, 'quests'));
+
+      if (docRef && profile) {
+        const newOrder = [...(profile.displayOrder || []), docRef.id];
+        await updateDoc(doc(db, 'users', user.uid), { displayOrder: newOrder })
+          .catch(e => handleFirestoreError(e, OperationType.UPDATE, `users/${user.uid}`));
+      }
+
       setShowQuestForm(false);
     } catch (error) {
       // Error already handled
@@ -467,6 +580,12 @@ function App() {
   const deleteQuest = async (questId: string) => {
     try {
       await deleteDoc(doc(db, 'quests', questId)).catch(e => handleFirestoreError(e, OperationType.DELETE, `quests/${questId}`));
+      
+      if (profile?.displayOrder) {
+        const newOrder = profile.displayOrder.filter(id => id !== questId);
+        await updateDoc(doc(db, 'users', user!.uid), { displayOrder: newOrder })
+          .catch(e => handleFirestoreError(e, OperationType.UPDATE, `users/${user!.uid}`));
+      }
     } catch (error) {
       // Error already handled
     }
@@ -481,6 +600,15 @@ function App() {
         questId,
         date: dateStr
       }).catch(e => handleFirestoreError(e, OperationType.CREATE, 'schedule'));
+
+      if (profile) {
+        const newOrder = [...(profile.displayOrder || [])];
+        if (!newOrder.includes(questId)) {
+          newOrder.push(questId);
+          await updateDoc(doc(db, 'users', user.uid), { displayOrder: newOrder })
+            .catch(e => handleFirestoreError(e, OperationType.UPDATE, `users/${user.uid}`));
+        }
+      }
     } catch (error) {
       // Error already handled
     }
@@ -494,13 +622,42 @@ function App() {
     }
   };
 
+  const reorderQuests = async (newQuests: Quest[]) => {
+    if (!user || !profile) return;
+    setLocalQuests(newQuests);
+    const newOrder = newQuests.map(q => q.id);
+    
+    try {
+      await updateDoc(doc(db, 'users', user.uid), { displayOrder: newOrder })
+        .catch(e => handleFirestoreError(e, OperationType.UPDATE, `users/${user.uid}`));
+    } catch (error) {
+      // Snapshot will handle revert
+    }
+  };
+
   // --- Derived State ---
   const dailyQuests = useMemo(() => {
     const todayStr = format(selectedDate, 'yyyy-MM-dd');
     const scheduledIds = schedule.filter(s => s.date === todayStr).map(s => s.questId);
     // Show predefined + custom + scheduled for today
-    return quests.filter(q => q.isPredefined || q.userId === user?.uid || scheduledIds.includes(q.id));
-  }, [quests, schedule, selectedDate, user]);
+    const filtered = quests.filter(q => q.isPredefined || q.userId === user?.uid || scheduledIds.includes(q.id));
+    
+    if (profile?.displayOrder) {
+      return [...filtered].sort((a, b) => {
+        const indexA = profile.displayOrder!.indexOf(a.id);
+        const indexB = profile.displayOrder!.indexOf(b.id);
+        if (indexA === -1 && indexB === -1) return 0;
+        if (indexA === -1) return 1;
+        if (indexB === -1) return -1;
+        return indexA - indexB;
+      });
+    }
+    return filtered;
+  }, [quests, schedule, selectedDate, user, profile?.displayOrder]);
+
+  useEffect(() => {
+    setLocalQuests(dailyQuests);
+  }, [dailyQuests]);
 
   if (!user) {
     return (
@@ -621,8 +778,8 @@ function App() {
               className="mb-6 overflow-hidden rounded-3xl bg-white p-4 shadow-sm border border-gray-100"
             >
               <div className="grid grid-cols-7 gap-1">
-                {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(d => (
-                  <div key={d} className="text-center text-[10px] font-black text-gray-300">{d}</div>
+                {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
+                  <div key={`${d}-${i}`} className="text-center text-[10px] font-black text-gray-300">{d}</div>
                 ))}
                 {eachDayOfInterval({
                   start: startOfMonth(selectedDate),
@@ -676,16 +833,17 @@ function App() {
               </button>
             </div>
           ) : (
-            dailyQuests.map(quest => (
-              <React.Fragment key={quest.id}>
-                <QuestCard 
-                  quest={quest}
-                  isCompleted={userQuests.some(uq => uq.questId === quest.id)}
-                  onToggle={() => toggleQuest(quest)}
-                  onDelete={() => deleteQuest(quest.id)}
+            <Reorder.Group axis="y" values={localQuests} onReorder={reorderQuests} className="space-y-3">
+              {localQuests.map(quest => (
+                <ReorderableQuest 
+                  key={quest.id} 
+                  quest={quest} 
+                  userQuests={userQuests} 
+                  toggleQuest={toggleQuest} 
+                  deleteQuest={deleteQuest} 
                 />
-              </React.Fragment>
-            ))
+              ))}
+            </Reorder.Group>
           )}
         </section>
       </main>

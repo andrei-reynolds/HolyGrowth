@@ -11,7 +11,8 @@
         "streak": { "type": "integer", "description": "Current daily completion streak." },
         "lastActiveDate": { "type": "string", "format": "date", "description": "Last date the user completed a quest (YYYY-MM-DD)." },
         "exp": { "type": "integer", "description": "Total experience points earned." },
-        "level": { "type": "integer", "description": "Current level based on exp." }
+        "level": { "type": "integer", "description": "Current level based on exp." },
+        "displayOrder": { "type": "array", "items": { "type": "string" }, "description": "Ordered list of quest IDs." }
       },
       "required": ["uid", "streak", "exp", "level"]
     },
@@ -26,7 +27,8 @@
         "description": { "type": "string" },
         "category": { "type": "string", "enum": ["exercise", "meditation", "reading", "custom"] },
         "points": { "type": "integer" },
-        "isPredefined": { "type": "boolean" }
+        "isPredefined": { "type": "boolean" },
+        "order": { "type": "integer", "description": "Display order for the quest." }
       },
       "required": ["title", "category", "points", "isPredefined"]
     },

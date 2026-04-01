@@ -14,6 +14,7 @@ export interface UserProfile {
   exp: number;
   level: number;
   role: 'user' | 'admin';
+  displayOrder?: string[];
 }
 
 export interface Quest {
@@ -24,6 +25,7 @@ export interface Quest {
   category: QuestCategory;
   points: number;
   isPredefined: boolean;
+  order?: number;
 }
 
 export interface UserQuest {
